@@ -897,9 +897,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/></svg>
           </div>
           <div class="upload-drop-title">Drop your resume here</div>
-          <div class="upload-drop-sub">PDF, DOC, DOCX, or TXT · Click to browse</div>
+          <div class="upload-drop-sub">PDF or TXT · Click to browse</div>
         </div>
-        <input type="file" id="upload-file-input" class="upload-input" accept=".pdf,.doc,.docx,.txt" onchange="uploadFileSelected(this)">
+        <input type="file" id="upload-file-input" class="upload-input" accept=".pdf,.txt" onchange="uploadFileSelected(this)">
         <div id="upload-key-warning" class="upload-requires-key">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-.1em;margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           Groq API key required to parse your resume. <button style="background:none;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-family:inherit;font-size:.8rem;" onclick="closeModal('upload-modal');openModal('settings-modal')">Add key</button>
@@ -1278,20 +1278,33 @@ async function exportPDF(){
   showProgress('Generating PDF…',10,'Rendering resume');
   try{
     const canvas=document.getElementById('resume-canvas');
-    // temporarily unscale for capture
     const scaler=document.getElementById('preview-scaler');
+    // Unscale preview so html2canvas sees the real 794px layout
     const origTransform=scaler.style.transform;
     scaler.style.transform='scale(1)';
-    await new Promise(r=>setTimeout(r,200));
+    // Let the browser repaint at natural size before capture
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
     showProgress('Generating PDF…',40,'Capturing layout');
-    const c=await html2canvas(canvas,{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false});
+    const CANVAS_W = 794; // fixed resume width
+    const SCALE = 3;      // 3× → ~2382px wide, crisp on retina & print
+    const c=await html2canvas(canvas,{
+      scale: SCALE,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: CANVAS_W,   // prevent layout reflow during capture
+      width: CANVAS_W,
+      x: 0
+    });
     scaler.style.transform=origTransform;
     showProgress('Generating PDF…',75,'Building PDF');
     const {jsPDF}=window.jspdf;
-    const imgH = c.height / 2;
+    // Real rendered height in PDF px (unscaled)
+    const imgH = c.height / SCALE;
     const pdfH = Math.max(1123, imgH);
-    const pdf=new jsPDF({orientation:'portrait',unit:'px',format:[794,pdfH]});
-    pdf.addImage(c.toDataURL('image/jpeg',0.95),'JPEG',0,0,794,imgH);
+    const pdf=new jsPDF({orientation:'portrait',unit:'px',format:[CANVAS_W, pdfH]});
+    // PNG keeps hard edges sharp (no JPEG compression artefacts on text/lines)
+    pdf.addImage(c.toDataURL('image/png'), 'PNG', 0, 0, CANVAS_W, imgH);
     showProgress('Generating PDF…',95,'Saving…');
     pdf.save(`${(S.name||'Resume').replace(/\s+/g,'_')}_Resume.pdf`);
     showProgress('Done!',100,'Your PDF is ready');
@@ -1859,9 +1872,13 @@ async function processUploadFile(file){
   }
 
   const ext = file.name.split('.').pop().toLowerCase();
-  const allowed = ['pdf','txt','doc','docx'];
+  const allowed = ['pdf','txt'];
+  if(ext === 'doc' || ext === 'docx'){
+    alert('Word documents (.doc/.docx) cannot be read directly in the browser.\n\nPlease save your CV as a PDF or copy-paste the text into a .txt file, then upload that instead.');
+    return;
+  }
   if(!allowed.includes(ext)){
-    alert('Please upload a PDF, TXT, DOC, or DOCX file.');
+    alert('Please upload a PDF or TXT file.');
     return;
   }
 
@@ -1877,6 +1894,7 @@ async function processUploadFile(file){
       document.getElementById('upload-parse-label').textContent = 'Extracting text from PDF...';
       resumeText = await extractTextFromPDF(file);
     } else {
+      // txt — plain text, safe to read directly
       document.getElementById('upload-parse-label').textContent = 'Reading document...';
       resumeText = await file.text();
     }
