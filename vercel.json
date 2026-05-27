@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/", "dest": "/ResumeForgev3_0_fixed.html" }
+  ]
+}
