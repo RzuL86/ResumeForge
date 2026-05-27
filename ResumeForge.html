@@ -719,6 +719,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="panel" id="panel-design">
     <div class="step-card">
       <div class="step-title">Template</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:6px;"><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);text-align:center;">📷 With Photo</div><div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);text-align:center;">No Photo</div></div>
       <div class="tpl-grid" id="tpl-grid"></div>
     </div>
     <div class="step-card">
@@ -1063,10 +1064,11 @@ const S = {
 const COLORS = ['#2563eb','#7c3aed','#059669','#dc2626','#d97706','#0891b2','#be185d','#1a1a1a','#374151','#c2410c'];
 
 const TEMPLATES = [
-  {id:'modern',label:'Modern'},{id:'classic',label:'Classic'},
-  {id:'minimal',label:'Minimal'},{id:'executive',label:'Executive'},{id:'creative',label:'Creative'},
-  {id:'corporate',label:'Corporate'},{id:'elegant',label:'Elegant'},
-  {id:'bold',label:'Bold'},{id:'sidebar',label:'Sidebar'},{id:'profile',label:'Profile'}
+  {id:'corporate',label:'Corporate'},{id:'modern',label:'Modern'},
+  {id:'elegant',label:'Elegant'},{id:'classic',label:'Classic'},
+  {id:'bold',label:'Bold'},{id:'minimal',label:'Minimal'},
+  {id:'sidebar',label:'Sidebar'},{id:'executive',label:'Executive'},
+  {id:'profile',label:'Profile'},{id:'creative',label:'Creative'}
 ];
 
 const QUICK_SKILLS = ['Leadership','Communication','Problem Solving','Microsoft Office','Project Management','Python','JavaScript','SQL','Photoshop','Figma','Excel','Public Speaking','Data Analysis','Customer Service','React','Node.js'];
@@ -1161,7 +1163,7 @@ function thumbHTML(id){
   if(id==='executive') return `<div style="background:white;height:100%"><div style="height:28px;background:${c}"></div><div style="padding:6px">${lines(8,'#e0e0e0')}</div></div>`;
   if(id==='creative') return `<div style="background:white;height:100%"><div style="height:30px;background:${c};clip-path:polygon(0 0,100% 0,100% 70%,0 100%)"></div><div style="padding:6px;display:grid;grid-template-columns:1fr 1fr;gap:4px">${lines(8,'#e0e0e0')}</div></div>`;
   if(id==='corporate') return `<div style="background:white;height:100%"><div style="height:10px;background:${c}"></div><div style="padding:6px;display:flex;gap:4px"><div style="width:22px;height:22px;border-radius:50%;background:${c}22;border:1px solid ${c}55;flex-shrink:0"></div><div style="flex:1">${lines(2,'#ccc')}</div></div><div style="padding:0 6px">${lines(7,'#e0e0e0')}</div></div>`;
-  if(id==='elegant') return `<div style="background:#faf9f7;height:100%;padding:8px"><div style="border-left:3px solid ${c};padding-left:6px;margin-bottom:5px"><div style="height:5px;background:${c}44;border-radius:2px;margin-bottom:2px"></div><div style="height:3px;background:${c}22;border-radius:2px"></div></div>${lines(8,'#ddd')}</div>`;
+  if(id==='elegant') return `<div style="background:#faf9f7;height:100%;padding:8px"><div style="border-left:3px solid ${c};padding-left:6px;margin-bottom:5px;display:flex;align-items:center;gap:6px"><div style="width:18px;height:18px;border-radius:3px;background:${c}33;border:1.5px solid ${c}66;flex-shrink:0"></div><div style="flex:1"><div style="height:4px;background:${c}44;border-radius:2px;margin-bottom:2px"></div><div style="height:3px;background:${c}22;border-radius:2px"></div></div></div>${lines(8,'#ddd')}</div>`;
   if(id==='bold') return `<div style="background:white;height:100%"><div style="background:${c};height:36px;display:flex;align-items:center;padding:0 8px"><div style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.3)"></div></div><div style="padding:6px">${lines(8,'#e0e0e0')}</div></div>`;
   if(id==='sidebar') return `<div style="background:white;height:100%;display:flex"><div style="width:30%;background:${c}15;border-right:2px solid ${c}33;padding:6px"><div style="width:20px;height:20px;border-radius:50%;background:${c}44;margin:0 auto 4px"></div>${lines(5,c+'44')}</div><div style="flex:1;padding:6px">${lines(8,'#e0e0e0')}</div></div>`;
   if(id==='profile') return `<div style="background:white;height:100%;padding:8px"><div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid ${c}"><div style="width:24px;height:24px;border-radius:50%;background:${c}33;border:2px solid ${c};flex-shrink:0"></div><div style="flex:1">${lines(2,'#ccc')}</div></div>${lines(7,'#e0e0e0')}</div>`;
@@ -1564,7 +1566,7 @@ async function exportPDF(){
     const imgH_MM=(c.height/c.width)*A4_W_MM;
     const pdfH_MM=Math.max(A4_H_MM,imgH_MM);
     const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:[A4_W_MM,pdfH_MM]});
-    pdf.addImage(c.toDataURL('image/png'),'PNG',0,0,imgW_MM,imgH_MM);
+    pdf.addImage(c.toDataURL('image/jpeg',0.92),'JPEG',0,0,imgW_MM,imgH_MM);
     showProgress('Generating PDF…',95,'Saving…');
     pdf.save(`${((S.resumeName||S.name||'Resume').replace(/\s+/g,'_'))}_Resume.pdf`);
     showProgress('Done!',100,'Your PDF is ready');
