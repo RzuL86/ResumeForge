@@ -953,6 +953,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
     <div class="modal-footer">
+      <span style="font-size:.72rem;color:var(--text4);margin-right:auto;align-self:center;letter-spacing:.03em">v3.3.3-US</span>
       <button class="btn btn-ghost" onclick="closeModal('settings-modal')">Cancel</button>
       <button class="btn btn-accent" onclick="saveGroqKey()">Save Key</button>
     </div>
@@ -2024,7 +2025,7 @@ async function runAutoOptimize(){
     // ── Step 1: Summary ──
     if(S.summary || S.title){
       aoSetProgress(15, 'Rewriting summary...');
-      const sysSum = `You are a professional resume writer who helps people get hired at top companies like Google, Netflix, and Amazon. Rewrite the professional summary to be sharp, honest, and compelling to a hiring manager. Rules: (1) Fix all grammar, spelling, and punctuation errors. (2) 2-3 sentences only — tight and focused. (3) Lead with the person's strongest value — their role, years of experience, or top skill. (4) Include 1-2 specific strengths that make them stand out. (5) End with what they bring to a team or company. (6) Sound like a confident human wrote it — no buzzwords like "dynamic", "passionate", "results-driven", "synergy". (7) Do NOT invent experience, only use what's provided. Output only the rewritten summary, nothing else.`;
+      const sysSum = `You are a professional resume writer who helps people get hired at top companies like Google, Netflix, and Amazon. Rewrite the professional summary to be sharp, honest, and compelling. STRICT RULES: (1) Fix all grammar, spelling, and punctuation errors. (2) MAXIMUM 2 sentences — no exceptions. First sentence: who they are + years of experience + top skill. Second sentence: what they deliver for the company. (3) Every word must earn its place — cut anything vague or generic. (4) BANNED words and phrases: "dynamic", "passionate", "results-driven", "synergy", "propel", "foster", "leverage", "seasoned", "track record", "unique ability", "forward", "landscape". (5) No buzzwords, no cover-letter tone, no fluff. (6) Do NOT invent experience — only use what's provided. (7) Sound like a sharp human, not an AI. Output only the rewritten summary, nothing else.`;
       const newSummary = await groqCall(sysSum, `NAME: ${S.name||''}\nTITLE: ${S.title||''}\nCURRENT SUMMARY: ${S.summary||'(none)'}`);
       if(newSummary) AO.summary = newSummary.trim();
     }
@@ -2035,7 +2036,7 @@ async function runAutoOptimize(){
       const ex = expsToProcess[i];
       if(!ex.desc || ex.desc.trim().length < 20) continue;
       aoSetProgress(20 + (i+1)*20, `Polishing experience ${i+1} of ${expsToProcess.length}...`);
-      const sysExp = `You are a professional resume writer who helps people get hired at top companies like Google, Netflix, and Amazon. Rewrite the job description into strong resume bullet points that impress both ATS systems and hiring managers. Rules: (1) Fix all grammar, spelling, and punctuation errors in the input. (2) Write 3-5 bullets based strictly on what the person actually did — no fabrication. (3) Start each bullet with a strong past-tense action verb (e.g. Managed, Built, Reduced, Delivered, Improved, Led). (4) Add impact where it's clearly implied — if they managed a team, say how it helped; if they improved something, say what changed. (5) Keep each bullet to 1 line, clear and specific. (6) Avoid weak filler words: "responsible for", "helped with", "assisted in", "various tasks". (7) Sound like a real professional, not an AI. Output only bullet points starting with •, no preamble.`;
+      const sysExp = `You are a professional resume writer who helps people get hired at top companies like Google, Netflix, and Amazon. Rewrite the job description into tight, powerful resume bullet points. STRICT RULES: (1) Fix all grammar, spelling, and punctuation errors. (2) Write exactly 3-4 bullets — no more. (3) Each bullet MUST fit on 1 line — maximum 120 characters including the bullet. Cut ruthlessly. (4) Start each bullet with a strong past-tense action verb (e.g. Led, Built, Grew, Cut, Launched, Closed, Trained, Automated). (5) If a real number exists in the input, use it. If no number exists, DO NOT invent one and DO NOT write vague impact like "significant growth" or "enhanced presence" — just state what was done, cleanly. (6) BANNED phrases: "responsible for", "helped with", "assisted in", "various tasks", "significant", "enhanced", "propel", "foster", "leverage", "ensuring", "resulting in", "in order to". (7) Sound like a sharp professional, not an AI. Output only bullet points starting with •, no preamble, no extra lines.`;
       const newDesc = await groqCall(sysExp, `JOB TITLE: ${ex.jobtitle||''}\nCOMPANY: ${ex.company||''}\nDESCRIPTION:\n${ex.desc}`);
       if(newDesc) AO.exps.push({ id: ex.id, jobtitle: ex.jobtitle, company: ex.company, before: ex.desc, after: newDesc.trim() });
     }
